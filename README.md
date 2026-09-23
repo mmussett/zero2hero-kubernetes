@@ -77,6 +77,7 @@ Every day lives in its own folder: `dayNN-topic/`. Each folder contains:
 ## Syllabus
 
 ### Phase 1 — Foundations
+
 | Day | Topic |
 |---|---|
 | [01](day01-containers-and-docker/README.md) | Linux containers & Docker fundamentals — build and run your first image |
@@ -86,6 +87,7 @@ Every day lives in its own folder: `dayNN-topic/`. Each folder contains:
 | [05](day05-services-and-networking/README.md) | Services, ClusterIP/NodePort/LoadBalancer, kube-proxy |
 
 ### Phase 2 — Workloads, Config & Storage
+
 | Day | Topic |
 |---|---|
 | [06](day06-configmaps-and-secrets/README.md) | ConfigMaps & Secrets |
@@ -95,6 +97,7 @@ Every day lives in its own folder: `dayNN-topic/`. Each folder contains:
 | [10](day10-namespaces-and-resource-management/README.md) | Namespaces, ResourceQuotas, LimitRanges, requests/limits |
 
 ### Phase 3 — Networking
+
 | Day | Topic |
 |---|---|
 | [11](day11-ingress/README.md) | Ingress resources & your first controller (Traefik) |
@@ -104,29 +107,34 @@ Every day lives in its own folder: `dayNN-topic/`. Each folder contains:
 | [15](day15-dns-and-service-discovery/README.md) | CoreDNS & service discovery internals |
 
 ### Phase 4 — Security
+
 | Day | Topic |
 |---|---|
 | [16](day16-rbac-and-service-accounts/README.md) | RBAC, ServiceAccounts, SecurityContexts |
 | [17](day17-pod-security-and-admission/README.md) | Pod Security Standards, admission control, image supply-chain basics |
 
 ### Phase 5 — Observability
+
 | Day | Topic |
 |---|---|
 | [18](day18-observability/README.md) | Metrics (Prometheus/Grafana), distributed tracing (Jaeger/OpenTelemetry), and centralized logging — node-agent (Loki, EFK/Filebeat) & sidecar (Fluent Bit, Fluentd) patterns compared |
 
 ### Phase 6 — Package Management
+
 | Day | Topic |
 |---|---|
 | [19](day19-helm/README.md) | Helm — templating, packaging, releases |
 | [20](day20-gitops-with-argocd-and-flux/README.md) | GitOps: continuous, git-driven deployment with ArgoCD (and a Flux comparison) |
 
 ### Phase 7 — Scaling & Extensibility
+
 | Day | Topic |
 |---|---|
 | [21](day21-autoscaling-and-rollouts/README.md) | HPA, VPA concepts, Cluster Autoscaler concepts, advanced rollout strategies |
 | [22](day22-crds-operators-and-kustomize/README.md) | Custom Resources, Operators, Kustomize |
 
 ### Phase 8 — Capstone
+
 | Day | Topic |
 |---|---|
 | [23](day23-capstone-project/README.md) | Capstone: deploy, secure, scale, and troubleshoot a full multi-tier app end-to-end |
