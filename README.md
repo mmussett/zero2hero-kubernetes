@@ -142,7 +142,7 @@ Every day lives in its own folder: `dayNN-topic/`. Each folder contains:
 ## Quick start
 
 ```bash
-git clone <this-repo>
+git clone https://github.com/mmussett/zero2hero-kubernetes.git
 cd zero2hero-kubernetes/day01-containers-and-docker
 cat README.md
 ```
