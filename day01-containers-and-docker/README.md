@@ -222,9 +222,94 @@ Every `docker run` picks a **network driver** that decides how the container's n
 
 Every container that uses a bridge network gets connected to that virtual switch via a **veth pair** — two virtual network interfaces permanently linked to each other like a virtual patch cable. One end is placed inside the container's own network namespace and renamed `eth0` (so from inside the container, `ip addr` shows a completely normal-looking network interface); the other end stays on the host and is plugged into the `docker0` bridge. The container gets allocated an IP address from the bridge's subnet, exactly the way a physical switch's DHCP server would hand an IP to a newly plugged-in laptop.
 
-**How traffic actually flows.** Because the container's IP (e.g. `172.17.0.2`) is private and unroutable outside the host, Docker manages two `iptables` rules automatically so the container can still talk to the world:
-- **Outbound (container → internet):** a `MASQUERADE` (source NAT) rule rewrites the container's private source IP to the host's own IP as traffic leaves — the destination server only ever sees the host, never the container's internal address. This is exactly why a container can `curl google.com` with zero configuration.
-- **Inbound (`-p 8080:8080`):** publishing a port adds a `DNAT` (destination NAT) rule — traffic arriving at `<host-ip>:8080` gets rewritten and forwarded to `172.17.0.2:8080`. Without `-p`, nothing outside the host (not even other processes on the host, for some driver combinations) can reach the container's port at all, even though the container itself is perfectly reachable from *other containers on the same bridge* without any port mapping.
+Here's that whole topology as one picture — a host with two containers, each connected to the same bridge by its own virtual patch cable:
+
+```
++--------------------------------------------------------------------------------+
+|  HOST MACHINE                                                                  |
+|                                                                                |
+|  +-------------------------+                                                   |
+|  | eth0  203.0.113.10      |  <-- the ONLY interface the                       |
+|  +-------------------------+      outside world can address                    |
+|               |                                                                |
+|               | host iptables NAT rules                                        |
+|               | (MASQUERADE out, DNAT in)                                      |
+|  +--------------------------------------------------------------------------+  |
+|  | docker0  --  a BRIDGE: a virtual Ethernet switch running inside the      |  |
+|  | kernel. IP 172.17.0.1/16 -- acts as the default gateway for every        |  |
+|  | container plugged into it.                                               |  |
+|  +--------------------------------------------------------------------------+  |
+|                 |                                            |                 |
+|                 |                                            |                 |
+|                 |                                            |                 |
+|           veth pair                                    veth pair               |
+|                 |                                            |                 |
+|                 |                                            |                 |
+|                 |                                            |                 |
+|  +------------------------------+             +------------------------------+ |
+|  | CONTAINER "api"              |             | CONTAINER "db"               | |
+|  | (own network namespace)      | <-DNS->     | (own network namespace)      | |
+|  | eth0  172.17.0.2             |             | eth0  172.17.0.3             | |
+|  +------------------------------+             +------------------------------+ |
+|                                                                                |
+|  Every container's eth0 is one end of a veth cable; the other                  |
+|  end is a port on docker0 -- exactly like plugging a laptop                    |
+|  into a physical switch. (DNS by container name works only on                  |
+|  user-defined bridges, not the default one.)                                   |
++--------------------------------------------------------------------------------+
+```
+
+**How traffic actually flows.** Because a container's IP (e.g. `172.17.0.2`) is private and unroutable outside the host, Docker manages two `iptables` NAT rules automatically so it can still talk to the world in both directions:
+
+```
++-----------------------------------------------------------------------+
+|  OUTBOUND -- container calls out (e.g. curl google.com, zero config)  |
+|                                                                       |
+|  CONTAINER "api"  (172.17.0.2)                                        |
+|  |                                                                    |
+|  1. packet leaves the container:                                      |
+|     src=172.17.0.2:54321  dst=<google-ip>:443                         |
+|  |                                                                    |
+|  veth (container-side end of the patch cable)                         |
+|  |                                                                    |
+|  docker0 bridge  172.17.0.1  -- the container's default gateway       |
+|  |                                                                    |
+|  host iptables -- POSTROUTING chain, MASQUERADE rule                  |
+|  2. rewrites the SOURCE address:                                      |
+|     172.17.0.2:54321  -->  203.0.113.10:54321                         |
+|  |                                                                    |
+|  host eth0  203.0.113.10  ----------------------------->  INTERNET    |
+|  3. leaves the host looking like it came from the HOST --             |
+|     the destination server never sees the container's                 |
+|     private IP at all                                                 |
++-----------------------------------------------------------------------+
+```
+
+```
++------------------------------------------------------------------+
+|  INBOUND -- a client reaches the container via -p 8080:8080      |
+|                                                                  |
+|  INTERNET                                                        |
+|  |                                                               |
+|  1. client connects to  203.0.113.10:8080  (the HOST's address)  |
+|  |                                                               |
+|  host eth0  203.0.113.10:8080                                    |
+|  |                                                               |
+|  host iptables -- PREROUTING chain, DNAT rule                    |
+|     (created automatically the moment you passed -p 8080:8080)   |
+|  2. rewrites the DESTINATION address:                            |
+|     203.0.113.10:8080  -->  172.17.0.2:8080                      |
+|  |                                                               |
+|  docker0 bridge  172.17.0.1  -- forwards to the correct veth     |
+|  |                                                               |
+|  veth (container-side end)  ----------------------------->       |
+|  3. arrives inside CONTAINER "api" (172.17.0.2:8080) looking     |
+|     like it was sent there directly -- the container has no      |
+|     idea NAT happened at all                                     |
++------------------------------------------------------------------+
+```
+
+Without `-p`, the DNAT rule in step 2 of the inbound diagram never exists, so nothing outside the host can reach the container's port — even though the container is perfectly reachable from *other containers on the same bridge*, on its container port directly, with no port mapping needed at all (that path never leaves `docker0`, so no NAT rule is even involved).
 
 **Default `bridge` vs. a user-defined bridge — this distinction matters far more than it looks.** Every container that omits `--network` lands on the same pre-existing `bridge` network (`docker0`) by default, and this has two real limitations:
 - **No automatic name resolution.** Containers on the default `bridge` network can only reach each other by IP address — there is no DNS. (Docker's old `--link` flag patched this with `/etc/hosts` entries decades ago; it's deprecated and you shouldn't use it.)
