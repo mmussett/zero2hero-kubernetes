@@ -2,6 +2,17 @@ title: "Zero to Hero for Kubernetes"
 description: "A 23-day, hands-on Kubernetes course from zero to production-minded practitioner — entirely on a local k3s cluster."
 theme: jekyll-theme-cayman
 
+# Kramdown's DEFAULT input parser does not understand GFM-style pipe
+# tables (the "| a | b |" syntax used throughout this course) — without
+# this, every table gets flattened into one run-on paragraph instead of
+# an actual <table>, even though the identical Markdown renders correctly
+# on GitHub.com (which always uses full GFM parsing). Explicitly
+# requesting the GFM input parser also fixes fenced-code-block language
+# hints, strikethrough, and autolinks the same way GitHub.com renders them.
+markdown: kramdown
+kramdown:
+  input: GFM
+
 # Jekyll's built-in "pretty" style: every page gets a clean, extension-less,
 # trailing-slash URL based on its path + filename (e.g. day03-pods/README.md
 # -> /day03-pods/README/) instead of the default .../README.html. index.md
