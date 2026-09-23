@@ -216,18 +216,48 @@ docker inspect hello-k8s                       # full JSON: config, mounts, netw
 
 ### 3.4 Networking
 
-By default, `docker run` attaches a container to the `bridge` network, giving it a private IP and NAT'd access to the outside world; `-p` punches a hole through that NAT for inbound traffic.
+Every `docker run` picks a **network driver** that decides how the container's network namespace is wired up. Understanding what each driver actually does at the OS level — not just which flag to pass — is what makes container networking (and later, Pod networking) stop feeling like magic.
+
+**What "bridge" actually means.** A Linux *bridge* is a virtual Ethernet switch implemented entirely in the kernel — the same concept as a physical network switch, just software. When the Docker daemon starts, it creates one itself, named `docker0`, and gives it a private IP range (typically `172.17.0.0/16`) to act as that virtual switch's own address and the default gateway for anything plugged into it.
+
+Every container that uses a bridge network gets connected to that virtual switch via a **veth pair** — two virtual network interfaces permanently linked to each other like a virtual patch cable. One end is placed inside the container's own network namespace and renamed `eth0` (so from inside the container, `ip addr` shows a completely normal-looking network interface); the other end stays on the host and is plugged into the `docker0` bridge. The container gets allocated an IP address from the bridge's subnet, exactly the way a physical switch's DHCP server would hand an IP to a newly plugged-in laptop.
+
+**How traffic actually flows.** Because the container's IP (e.g. `172.17.0.2`) is private and unroutable outside the host, Docker manages two `iptables` rules automatically so the container can still talk to the world:
+- **Outbound (container → internet):** a `MASQUERADE` (source NAT) rule rewrites the container's private source IP to the host's own IP as traffic leaves — the destination server only ever sees the host, never the container's internal address. This is exactly why a container can `curl google.com` with zero configuration.
+- **Inbound (`-p 8080:8080`):** publishing a port adds a `DNAT` (destination NAT) rule — traffic arriving at `<host-ip>:8080` gets rewritten and forwarded to `172.17.0.2:8080`. Without `-p`, nothing outside the host (not even other processes on the host, for some driver combinations) can reach the container's port at all, even though the container itself is perfectly reachable from *other containers on the same bridge* without any port mapping.
+
+**Default `bridge` vs. a user-defined bridge — this distinction matters far more than it looks.** Every container that omits `--network` lands on the same pre-existing `bridge` network (`docker0`) by default, and this has two real limitations:
+- **No automatic name resolution.** Containers on the default `bridge` network can only reach each other by IP address — there is no DNS. (Docker's old `--link` flag patched this with `/etc/hosts` entries decades ago; it's deprecated and you shouldn't use it.)
+- **Flat, shared network.** Every container that doesn't specify otherwise ends up on this one network together, with no isolation between unrelated projects running on the same host.
+
+A **user-defined bridge** (`docker network create app-net`) is a *second, independent* virtual switch — its own `iptables` rules, its own subnet, fully isolated from the default `bridge` and from any other user-defined network. Critically, Docker also runs an embedded DNS server (`127.0.0.11`) automatically for every user-defined network, so containers can resolve each other **by container name** with zero extra configuration. This is why the official Docker docs recommend user-defined bridges over the default one for anything beyond a quick one-off test — and it's why every multi-container example in this course (and Docker Compose, which you won't use in this course, but will likely meet elsewhere) always creates its own network first.
 
 ```bash
 docker network ls                              # list networks (bridge, host, none, plus any you create)
-docker network create app-net                  # create an isolated user-defined bridge network
-docker run -d --network app-net --name db postgres:16
-docker run -d --network app-net --name api hello-k8s:1.0.0   # 'api' can reach 'db' by container name — DNS is automatic
-docker network inspect app-net                 # see attached containers and their IPs
-docker network connect app-net hello-k8s       # attach an already-running container to another network
+docker network create app-net                  # create a new, isolated virtual switch with its own subnet + embedded DNS
+docker run -d --network app-net --name db postgres:16                        # attach 'db' to it
+docker run -d --network app-net --name api hello-k8s:1.0.0                   # attach 'api' to the same network
+docker exec api getent hosts db                # 'api' resolves 'db' to its container IP — DNS just works, no config
+docker run --rm --network bridge alpine getent hosts db   # a container on the DEFAULT bridge instead cannot resolve 'db' at all
+docker network inspect app-net                 # see the subnet, gateway, and every attached container's IP
+docker network connect app-net hello-k8s       # attach an already-running container to another network (a container can be on several at once)
 docker network disconnect app-net hello-k8s    # detach it
-docker network rm app-net                      # delete a network (must have no attached containers)
+docker network rm app-net                      # delete a network (must have no attached containers first)
 ```
+
+**`--network host` — no bridge, no veth pair, no NAT, no isolation.** This mode skips container networking entirely: the container does *not* get its own network namespace at all, and instead shares the host's directly. Run `ip addr` inside a `--network host` container and you'll see the host's *real* physical/virtual interfaces, not a private `eth0`. A process listening on port `8080` inside the container is, from the network's point of view, indistinguishable from a normal process listening on port `8080` on the host itself — there is no container IP to route to, so `-p` is not just unnecessary, it's rejected outright. This buys you a small amount of performance (no NAT/bridge overhead) and lets the container observe the host's real network topology, at the direct cost of the isolation containers otherwise provide: the container can bind to any host port (colliding with real host services if you're not careful), and it can see/interact with every network interface the host has.
+
+**`--network none` — no networking at all.** The container gets a network namespace, but the only thing in it is the loopback interface (`lo`); there's no `eth0`, no bridge attachment, no route to anywhere, not even the host. Use it for batch/CPU-bound jobs that have no business talking to a network at all (the smallest possible attack surface), or as a blank slate when you intend to wire up networking entirely by hand.
+
+**`--network container:<name>`** — a fourth mode worth knowing purely because of where it leads: instead of getting a new network namespace or joining a bridge, the container reuses another container's *existing* network namespace outright — same `eth0`, same IP, same open ports, distinguishable only by `localhost`. This is precisely the mechanism Kubernetes itself is built on: **every container inside the same Pod effectively runs in `--network container:<the Pod's other containers>`** — which is exactly why containers in one Pod (Day 3) share an IP address and can reach each other over `localhost`, while every Pod as a whole gets its own separate IP, the same way a normal bridge-networked container does. Container network modes on Day 1 map directly onto Pod networking rules on Day 3; nothing new is being invented, only renamed.
+
+| Mode | Own network namespace? | Container-name DNS | `-p` needed for inbound? | Typical use |
+|---|---|---|---|---|
+| `bridge` (default, implicit) | Yes — private IP on `docker0` | No — IP only | Yes | Quick one-off containers; avoid for anything long-lived |
+| user-defined bridge (`docker network create`) | Yes — private IP on your own virtual switch | **Yes**, automatic | Yes | The default choice for any multi-container setup |
+| `host` | **No** — shares the host's namespace directly | N/A (uses the host's own resolution) | No — and can't be used | Performance-sensitive or network-topology-aware tools; sacrifices isolation |
+| `none` | Yes — loopback only | N/A — no network at all | N/A | Fully offline batch jobs; maximum isolation |
+| `container:<name>` | No — shares another container's namespace | Inherits that container's resolution | N/A | Sidecar-style tooling; this is exactly how Kubernetes builds a Pod |
 
 | Command | Purpose |
 |---|---|
@@ -238,8 +268,9 @@ docker network rm app-net                      # delete a network (must have no 
 | `docker network rm <name>` | Delete a network |
 | `--network host` (on `docker run`) | Skip network isolation entirely — the container shares the host's network namespace directly (no `-p` needed, but no port isolation either) |
 | `--network none` (on `docker run`) | No networking at all beyond loopback |
+| `--network container:<name>` (on `docker run`) | Join an existing container's network namespace instead of getting a new one — same IP, same ports |
 
-This container-name-based DNS resolution on a user-defined network is the direct conceptual ancestor of Kubernetes [Service discovery](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/) (Day 5/15) — `api` reaching `db` by name here is the same idea as a Pod reaching `my-svc.my-namespace.svc.cluster.local` later.
+This container-name-based DNS resolution on a user-defined network is the direct conceptual ancestor of Kubernetes [Service discovery](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/) (Day 5/15) — `api` reaching `db` by name here is the same idea as a Pod reaching `my-svc.my-namespace.svc.cluster.local` later. For the mechanism behind the scenes, see the [Docker networking overview](https://docs.docker.com/engine/network/) and the [bridge network driver reference](https://docs.docker.com/engine/network/drivers/bridge/) — and once you reach Day 3, compare this section against the [Kubernetes Pod networking model](https://kubernetes.io/docs/concepts/cluster-administration/networking/#the-kubernetes-network-model) to see exactly how much of it carries forward unchanged.
 
 ### 3.5 Volumes & bind mounts
 
