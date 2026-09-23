@@ -1,3 +1,5 @@
+---
+---
 # Day 8 — Exercises
 
 ## Exercise 1 — Write the minimal StatefulSet from scratch

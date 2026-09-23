@@ -1,3 +1,5 @@
+---
+---
 # Day 2 — Kubernetes Architecture & Installing Your First Cluster
 
 Today has two halves: understanding what Kubernetes' moving parts actually are, and then standing up a real, working cluster on your own machine that every remaining day in this course runs against. Take your time on the install — a shaky cluster now costs you far more time later than getting it right today.

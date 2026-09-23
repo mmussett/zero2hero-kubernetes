@@ -1,3 +1,5 @@
+---
+---
 # Day 12 — Ingress Controllers in Depth: NGINX, Kong & Traefik Compared
 
 > **Resource note:** running three Ingress controllers simultaneously (Traefik, already installed; NGINX Ingress Controller; Kong) is noticeably heavier than Day 11 alone. 4GB RAM is workable but tight — 6GB+ is more comfortable. Tear down whichever controller you're not actively comparing if things feel slow.

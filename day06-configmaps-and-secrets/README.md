@@ -1,3 +1,5 @@
+---
+---
 # Day 6 — ConfigMaps & Secrets
 
 ## Learning objectives

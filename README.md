@@ -1,3 +1,5 @@
+---
+---
 # Zero to Hero for Kubernetes
 
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-1.30%2B-326CE5?logo=kubernetes&logoColor=white)

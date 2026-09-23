@@ -1,3 +1,5 @@
+---
+---
 # Day 12 — Exercises
 
 ## Exercise 1 — Default IngressClass collision

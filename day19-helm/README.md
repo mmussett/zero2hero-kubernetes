@@ -1,3 +1,5 @@
+---
+---
 # Day 19 — Helm: Templating, Packaging & Release Management
 
 You used Helm as a black box yesterday to install Prometheus and Loki. Today you learn what actually happened, and build your own chart.

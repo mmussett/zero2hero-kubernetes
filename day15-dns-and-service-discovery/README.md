@@ -1,3 +1,5 @@
+---
+---
 # Day 15 — CoreDNS & Service Discovery Internals
 
 ## Learning objectives

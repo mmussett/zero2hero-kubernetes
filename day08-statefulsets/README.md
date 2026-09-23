@@ -1,3 +1,5 @@
+---
+---
 # Day 8 — StatefulSets & Stable Network Identity
 
 ## Learning objectives

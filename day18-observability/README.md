@@ -1,3 +1,5 @@
+---
+---
 # Day 18 — Observability: Metrics, Traces & Logging (Node-Agent, Sidecar & ELK/EFK)
 
 > **Resource & time note:** this is the heaviest day in the course. It installs Prometheus, Grafana, Elasticsearch, Kibana, Filebeat, Fluent Bit, Fluentd, and Jaeger across five sequential parts, each with its own teardown before the next begins. **Bump your lab VM to at least 4 vCPU / 8GB RAM for today** (see Day 2's environment options if you need to resize a Multipass/cloud VM) — the values files here are already trimmed as far as reasonably possible, but Elasticsearch alone wants ~1.5GB comfortably. Budget **3-4 hours**, and it's entirely reasonable to split this across two sessions at the Part boundaries below. Do the teardown step at the end of each Part before starting the next — running everything at once will not fit even on 8GB.

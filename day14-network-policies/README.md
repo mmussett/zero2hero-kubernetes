@@ -1,3 +1,5 @@
+---
+---
 # Day 14 — NetworkPolicies: Segmenting Pod-to-Pod Traffic
 
 ## Learning objectives

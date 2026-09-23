@@ -1,3 +1,5 @@
+---
+---
 # Day 1 — Linux Containers & Docker Fundamentals
 
 Kubernetes orchestrates containers. Before you can reason about Pods, you need to have personally built an image, watched it run, and broken it. Today has no Kubernetes at all — that starts tomorrow.

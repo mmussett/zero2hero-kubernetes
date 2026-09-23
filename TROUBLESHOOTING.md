@@ -1,3 +1,5 @@
+---
+---
 # Debugging Common Kubernetes Issues — A Beginner's Field Guide
 
 This is the addendum every day's own **Troubleshooting** section links back to. Where a day's section covers issues specific to that day's topic, this file covers the issues that show up **everywhere**, regardless of which day you're on — the ones almost every beginner hits at some point between Day 1 and Day 23. Bookmark it; you will come back to it.

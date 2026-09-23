@@ -1,3 +1,5 @@
+---
+---
 # Day 13 — Ingress Gateways: The Gateway API
 
 > **Resource note:** tear down every controller you installed on Day 12 first (`helm uninstall ingress-nginx -n ingress-nginx; helm uninstall kong -n kong`) — today installs three MORE control planes (Envoy Gateway, NGINX Gateway Fabric, Kong Gateway Operator). 8GB RAM is strongly recommended. Kong Gateway Operator specifically is the newest, fastest-moving piece of software in this course — if an exact CRD field has changed shape since this was written, the *concepts* below still hold; check [Kong's current Gateway Operator docs](https://docs.konghq.com/gateway-operator/latest/) for the exact YAML.

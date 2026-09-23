@@ -1,3 +1,5 @@
+---
+---
 # Day 10 — Exercises
 
 ## Exercise 1 — Write the minimal Namespace and ResourceQuota from scratch

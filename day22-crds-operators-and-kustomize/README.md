@@ -1,3 +1,5 @@
+---
+---
 # Day 22 — Custom Resources, Operators & Kustomize
 
 ## Learning objectives

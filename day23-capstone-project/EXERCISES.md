@@ -1,3 +1,5 @@
+---
+---
 # Day 23 — Final Exercises & Course Assessment
 
 These four scenarios are the four "breaks" introduced in `README.md` section 3, formalized as graded exercises. Work through each independently, in order, reverting your fix before starting the next. For each one, write down: (a) the exact `kubectl` commands you used to diagnose it, (b) the root cause, (c) the fix.

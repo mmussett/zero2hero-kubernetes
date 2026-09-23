@@ -1,3 +1,5 @@
+---
+---
 # Day 6 — Solutions
 
 ## Exercise 1

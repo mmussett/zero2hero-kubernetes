@@ -1,3 +1,5 @@
+---
+---
 # Day 23 — Capstone: Deploy, Secure, Scale & Troubleshoot a Full Application
 
 Nineteen days, one cluster, every topic. Today you deploy a real three-tier application — **frontend → backend → Redis** — packaged as a single Helm chart that deliberately exercises nearly every mechanism from this course at once, then you break it on purpose and fix it using nothing but the diagnostic skills you've built since Day 2.

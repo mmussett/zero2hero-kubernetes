@@ -1,3 +1,5 @@
+---
+---
 # Day 14 — Exercises
 
 ## Exercise 1 — Write the minimal NetworkPolicy from scratch

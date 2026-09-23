@@ -1,3 +1,5 @@
+---
+---
 # Day 21 — Autoscaling & Advanced Rollout Strategies
 
 ## Learning objectives

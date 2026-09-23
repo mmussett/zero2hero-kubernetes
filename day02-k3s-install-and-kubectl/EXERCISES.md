@@ -1,3 +1,5 @@
+---
+---
 # Day 2 — Exercises
 
 ## Exercise 1 — Read the architecture from your own cluster

@@ -1,3 +1,5 @@
+---
+---
 # Day 1 — Exercises
 
 Attempt each exercise yourself before checking `SOLUTIONS.md`.

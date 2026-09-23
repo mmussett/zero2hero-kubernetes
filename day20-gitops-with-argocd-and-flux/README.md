@@ -1,3 +1,5 @@
+---
+---
 # Day 20 — GitOps: Continuous, Git-Driven Deployment with ArgoCD & Flux
 
 > **Prerequisite:** this lab deploys directly from **your own fork/push of this course repository** — see the top-level README's note on publishing to GitHub. Replace `REPO_URL_PLACEHOLDER` in every manifest below with your repo's real URL before applying. If you haven't pushed this repo anywhere yet, do that first; today's lab is exactly why the top-level README asked you to.

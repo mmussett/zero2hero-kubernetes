@@ -1,3 +1,5 @@
+---
+---
 # Day 3 — Exercises
 
 ## Exercise 1 — Write the minimal Pod from scratch

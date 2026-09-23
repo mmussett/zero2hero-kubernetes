@@ -1,3 +1,5 @@
+---
+---
 # Day 6 — Exercises
 
 ## Exercise 1 — Write the minimal ConfigMap from scratch

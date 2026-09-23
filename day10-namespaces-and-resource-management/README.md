@@ -1,3 +1,5 @@
+---
+---
 # Day 10 — Namespaces, Resource Management & Scheduling Controls
 
 ## Learning objectives
