@@ -1,4 +1,5 @@
 ---
+permalink: /
 ---
 # Zero to Hero for Kubernetes
 
