@@ -1,0 +1,36 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hello-kong
+spec:
+  ingressClassName: kong
+  rules:
+    - host: icd-kong.zero2hero.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: {name: hello-app-svc, port: {number: 80}}
+---
+# Same nginx-specific rewrite-target annotation as ingress-nginx.yaml,
+# but pointed at Kong instead. Kong has NO idea what
+# "nginx.ingress.kubernetes.io/rewrite-target" means -- it's simply
+# ignored, silently, proving annotations are controller-specific, not
+# part of the portable Ingress spec itself.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hello-kong-ignored-annotation
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: kong
+  rules:
+    - host: icd-kong-annotation-test.zero2hero.local
+      http:
+        paths:
+          - path: /app(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service: {name: hello-app-svc, port: {number: 80}}

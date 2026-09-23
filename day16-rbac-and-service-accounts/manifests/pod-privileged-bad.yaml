@@ -1,0 +1,13 @@
+# Deliberately over-privileged, for contrast with pod-securitycontext.yaml.
+# Never run Pods like this outside a deliberate, narrow exception.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: insecure-pod
+spec:
+  containers:
+    - name: hello-k8s
+      image: localhost:5000/hello-k8s:1.0.0
+      securityContext:
+        privileged: true              # full access to the HOST's devices/kernel capabilities
+        allowPrivilegeEscalation: true

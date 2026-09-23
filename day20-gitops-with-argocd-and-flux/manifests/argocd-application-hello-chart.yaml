@@ -1,0 +1,33 @@
+# An Application is ArgoCD's core CRD: "keep THIS namespace's live state in
+# sync with THIS path, in THIS git repo, at THIS revision." Everything
+# else ArgoCD does is in service of reconciling toward this one
+# declaration, continuously, forever -- the exact same reconciliation
+# loop shape from Day 2's architecture diagram, applied to your ENTIRE
+# application deployment instead of just one resource type.
+#
+# REPO_URL_PLACEHOLDER: replace with your own fork's URL, e.g.
+#   https://github.com/<your-username>/zero2hero-kubernetes.git
+# (see the top-level README -- this course is meant to be pushed to your
+# own GitHub, and today's lab is exactly why.)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hello-chart
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: REPO_URL_PLACEHOLDER
+    targetRevision: main
+    path: day19-helm/chart/hello-chart
+    helm:
+      valueFiles: []
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd-demo
+  syncPolicy:
+    # Deliberately MANUAL to start (see the lab) -- automated sync +
+    # self-heal is switched on later, once you've watched one manual
+    # sync happen and understand what it actually does.
+    syncOptions:
+      - CreateNamespace=true

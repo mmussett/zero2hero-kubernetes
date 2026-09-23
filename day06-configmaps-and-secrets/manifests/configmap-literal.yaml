@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hello-config
+data:
+  GREETING: "Hello from a ConfigMap!"
+  APP_VERSION: "3.0.0"
+  app.properties: |
+    log.level=INFO
+    feature.newUi=true

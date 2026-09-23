@@ -1,0 +1,38 @@
+# ValidatingAdmissionPolicy (GA in Kubernetes 1.30): built-in, CEL-based
+# admission control with NO webhook server to build/host/secure yourself —
+# the modern, low-overhead alternative to writing a custom admission
+# webhook for straightforward policy rules like this one.
+#
+# This policy rejects any Pod using the ":latest" tag (or no tag at all,
+# which defaults to :latest) — a well-known supply-chain hygiene rule:
+# ":latest" is mutable and non-reproducible, so today's "latest" can silently
+# become a different, unvetted image tomorrow with no change to your YAML.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: no-latest-tag-policy
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+  validations:
+    - expression: >-
+        object.spec.containers.all(c,
+          c.image.contains(':') && !c.image.endsWith(':latest'))
+      message: "Container images must specify a non-'latest' tag (image supply-chain hygiene — see Day 15)."
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: no-latest-tag-binding
+spec:
+  policyName: no-latest-tag-policy
+  validationActions: ["Deny"]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: restricted-ns

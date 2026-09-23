@@ -1,0 +1,51 @@
+# Day 12. Deliberately INGRESS-only (no default-deny-egress) to keep the
+# capstone's network policy surface focused and avoid the Day 12 DNS trap —
+# a real production namespace would very likely add egress restrictions
+# too, following the same pattern you already practiced on Day 12.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+---
+# frontend accepts ingress from anywhere (it's the public entry point,
+# reached via the Traefik Ingress controller running in kube-system)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-frontend
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector: {matchLabels: {app: frontend}}
+  policyTypes: [Ingress]
+  ingress:
+    - {}
+---
+# backend accepts ingress ONLY from frontend Pods
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-to-backend
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector: {matchLabels: {app: backend}}
+  policyTypes: [Ingress]
+  ingress:
+    - from: [{podSelector: {matchLabels: {app: frontend}}}]
+      ports: [{protocol: TCP, port: 8080}]
+---
+# redis accepts ingress ONLY from backend Pods
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-backend-to-redis
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector: {matchLabels: {app: redis}}
+  policyTypes: [Ingress]
+  ingress:
+    - from: [{podSelector: {matchLabels: {app: backend}}}]
+      ports: [{protocol: TCP, port: 6379}]

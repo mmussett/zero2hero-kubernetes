@@ -1,0 +1,26 @@
+# Trimmed-down values for the "kube-prometheus-stack" Helm chart, sized to
+# fit comfortably on this course's single-node, 4GB-RAM lab VM. A real
+# production install would use the chart's defaults (multiple replicas,
+# persistent storage, longer retention) — see the chart's own values.yaml
+# for everything being overridden here.
+grafana:
+  adminPassword: "zero2hero"
+  persistence:
+    enabled: false
+  resources:
+    requests: {cpu: "50m", memory: "128Mi"}
+    limits: {cpu: "200m", memory: "256Mi"}
+
+prometheus:
+  prometheusSpec:
+    retention: 6h
+    resources:
+      requests: {cpu: "100m", memory: "256Mi"}
+      limits: {cpu: "500m", memory: "512Mi"}
+    storageSpec: {}   # ephemeral — fine for this course, never for production
+
+alertmanager:
+  enabled: false   # out of scope for today's lab; alerting rules alone are the focus
+
+# node-exporter and kube-state-metrics stay enabled (default) — they're
+# lightweight and are exactly what makes cluster-wide dashboards useful.

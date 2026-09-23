@@ -1,0 +1,19 @@
+# The smallest valid Ingress: one host, one path, one backend, no
+# annotations, no TLS. Reuses hello-app-svc from deployments-services.yaml.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hello-world
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: hello-world.zero2hero.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: hello-app-svc
+                port:
+                  number: 80

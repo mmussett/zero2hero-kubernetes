@@ -1,0 +1,56 @@
+# A CustomResourceDefinition teaches the API server a brand new resource
+# type, "Website" — from this point on, `kubectl get websites` works exactly
+# like `kubectl get pods`: same verbs, same RBAC model (Day 14), same
+# `kubectl get -o yaml`, all for free, for an API Kubernetes itself has
+# never heard of before this file is applied.
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: websites.training.zero2hero.dev
+spec:
+  group: training.zero2hero.dev
+  names:
+    kind: Website
+    plural: websites
+    singular: website
+    shortNames: ["ws"]
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: ["greeting", "replicas"]
+              properties:
+                greeting:
+                  type: string
+                  description: "Text the deployed hello-k8s app should respond with"
+                replicas:
+                  type: integer
+                  minimum: 1
+                  maximum: 10
+              x-kubernetes-preserve-unknown-fields: false
+            status:
+              type: object
+              properties:
+                observedReplicas:
+                  type: integer
+                phase:
+                  type: string
+      additionalPrinterColumns:
+        - name: Greeting
+          type: string
+          jsonPath: .spec.greeting
+        - name: Replicas
+          type: integer
+          jsonPath: .spec.replicas
+        - name: Phase
+          type: string
+          jsonPath: .status.phase
+      subresources:
+        status: {}

@@ -1,0 +1,23 @@
+# Trimmed values for ingress-nginx/ingress-nginx. Traefik (k3s's default)
+# already owns host ports 80/443 via k3s's ServiceLB — running a SECOND
+# controller with type: LoadBalancer on this single node would collide on
+# those same ports. NodePort on distinct ports sidesteps that entirely,
+# and is itself a realistic pattern for running multiple controllers on
+# one cluster (e.g. one "public" controller, one "internal-only" controller).
+controller:
+  ingressClassResource:
+    name: nginx
+    enabled: true
+    default: false          # do NOT contest Traefik's default IngressClass
+  ingressClass: nginx
+  watchIngressWithoutClass: false   # only handle Ingresses that explicitly ask for us
+  service:
+    type: NodePort
+    nodePorts:
+      http: 30100
+      https: 30143
+  resources:
+    requests: {cpu: "50m", memory: "90Mi"}
+    limits: {cpu: "200m", memory: "180Mi"}
+  admissionWebhooks:
+    enabled: false   # simplifies the lab; production installs should leave this on

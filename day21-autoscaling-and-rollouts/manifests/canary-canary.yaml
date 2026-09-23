@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-canary-canary
+  labels: {app: hello-canary, track: canary}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: hello-canary, track: canary}}
+  template:
+    metadata: {labels: {app: hello-canary, track: canary}}
+    spec:
+      containers:
+        - name: hello-k8s
+          image: localhost:5000/hello-k8s:1.0.0
+          env: [{name: GREETING, value: "CANARY version — new code!"}]
+          ports: [{containerPort: 8080}]
+          readinessProbe: {httpGet: {path: /healthz, port: 8080}}
+---
+# Note: the Service selector matches only "app: hello-canary" (NOT track),
+# so it load-balances across BOTH Deployments' Pods together, weighted
+# naturally by their relative replica counts.
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-canary-svc
+spec:
+  selector:
+    app: hello-canary
+  ports:
+    - port: 80
+      targetPort: 8080

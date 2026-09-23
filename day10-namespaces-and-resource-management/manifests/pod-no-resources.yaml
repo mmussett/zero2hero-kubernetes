@@ -1,0 +1,10 @@
+# Deliberately specifies NO resources block, to observe LimitRange defaulting.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: no-resources-pod
+  namespace: team-alpha
+spec:
+  containers:
+    - name: hello-k8s
+      image: localhost:5000/hello-k8s:1.0.0

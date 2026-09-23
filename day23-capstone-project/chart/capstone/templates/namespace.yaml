@@ -1,0 +1,9 @@
+# Day 15: Pod Security Standards enforced namespace-wide via labels, and
+# Day 10: the namespace boundary everything else in this chart lives in.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.namespace }}
+  labels:
+    pod-security.kubernetes.io/enforce: {{ .Values.podSecurityStandard }}
+    pod-security.kubernetes.io/enforce-version: latest

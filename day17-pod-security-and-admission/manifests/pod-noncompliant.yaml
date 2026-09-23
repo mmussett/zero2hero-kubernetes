@@ -1,0 +1,14 @@
+# Violates "restricted" in three separate ways at once — apply this to
+# restricted-ns and read every line of the rejection message.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: noncompliant-pod
+  namespace: restricted-ns
+spec:
+  containers:
+    - name: hello-k8s
+      image: localhost:5000/hello-k8s:1.0.0
+      securityContext:
+        privileged: true
+        allowPrivilegeEscalation: true

@@ -1,0 +1,16 @@
+# Tolerates a custom taint "dedicated=gpu:NoSchedule" — apply the taint to
+# your node first (see the lab) to see this Pod get scheduled where an
+# untainted-tolerating Pod would be refused.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tolerating-pod
+spec:
+  tolerations:
+    - key: "dedicated"
+      operator: "Equal"
+      value: "gpu"
+      effect: "NoSchedule"
+  containers:
+    - name: hello-k8s
+      image: localhost:5000/hello-k8s:1.0.0

@@ -1,0 +1,42 @@
+namespace: capstone
+
+images:
+  frontend: localhost:5000/capstone-frontend:1.0.0
+  backend: localhost:5000/capstone-backend:1.0.0
+  redis: redis:7-alpine
+
+frontend:
+  replicas: 2
+  resources:
+    requests: {cpu: "50m", memory: "64Mi"}
+    limits: {cpu: "200m", memory: "128Mi"}
+  ingress:
+    enabled: true
+    host: capstone.zero2hero.local
+
+backend:
+  replicas: 2
+  resources:
+    requests: {cpu: "100m", memory: "64Mi"}
+    limits: {cpu: "300m", memory: "128Mi"}
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 60
+
+redis:
+  storage: 256Mi
+  storageClassName: local-path
+  resources:
+    requests: {cpu: "50m", memory: "64Mi"}
+    limits: {cpu: "200m", memory: "128Mi"}
+
+resourceQuota:
+  requestsCpu: "2"
+  requestsMemory: 2Gi
+  limitsCpu: "4"
+  limitsMemory: 4Gi
+  pods: "20"
+
+podSecurityStandard: restricted   # namespace-wide enforce level, per Day 15

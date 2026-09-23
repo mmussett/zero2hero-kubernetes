@@ -1,0 +1,19 @@
+# emptyDir: created when the Pod is assigned to a Node, deleted permanently
+# when the Pod is removed from that Node. Great for scratch space shared
+# between containers in the same Pod (see Day 3's sidecar example) — useless
+# for anything that must survive a Pod restart/reschedule.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: emptydir-demo
+spec:
+  containers:
+    - name: writer
+      image: busybox:1.36
+      command: ["sh", "-c", "date >> /data/log.txt; sleep 3600"]
+      volumeMounts:
+        - name: scratch
+          mountPath: /data
+  volumes:
+    - name: scratch
+      emptyDir: {}

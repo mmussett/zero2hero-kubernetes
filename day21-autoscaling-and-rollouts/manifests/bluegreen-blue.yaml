@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-blue
+  labels: {app: hello-bg, track: blue}
+spec:
+  replicas: 3
+  selector: {matchLabels: {app: hello-bg, track: blue}}
+  template:
+    metadata: {labels: {app: hello-bg, track: blue}}
+    spec:
+      containers:
+        - name: hello-k8s
+          image: localhost:5000/hello-k8s:1.0.0
+          env: [{name: GREETING, value: "I am BLUE (old version)"}]
+          ports: [{containerPort: 8080}]
+          readinessProbe: {httpGet: {path: /healthz, port: 8080}}

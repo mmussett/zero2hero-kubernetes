@@ -1,0 +1,51 @@
+# The Day 3 sidecar pattern, applied for real: "app" only ever writes to a
+# LOCAL FILE (simulating a legacy app that can't/won't log to stdout --
+# many real commercial and off-the-shelf apps behave exactly this way).
+# "fluent-bit" is a second container in the SAME Pod, sharing the
+# "log-data" emptyDir volume, tailing that file and shipping it out.
+# Neither container knows the other exists -- they're coupled only by the
+# shared volume, exactly like Day 3's log-shipper example.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sidecar-fluentbit-demo
+  namespace: monitoring
+  labels: {app: sidecar-fluentbit-demo}
+spec:
+  volumes:
+    - name: log-data
+      emptyDir: {}
+    - name: fluent-bit-config
+      configMap: {name: fluent-bit-sidecar-config}
+  containers:
+    - name: app
+      image: busybox:1.36
+      command:
+        - sh
+        - -c
+        - |
+          mkdir -p /var/log/app
+          i=0
+          while true; do
+            i=$((i+1))
+            ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+            lvl="INFO"
+            [ $((i % 7)) -eq 0 ] && lvl="WARN"
+            [ $((i % 13)) -eq 0 ] && lvl="ERROR"
+            echo "{\"time\":\"$ts\",\"level\":\"$lvl\",\"seq\":$i,\"msg\":\"file-only heartbeat $i\"}" >> /var/log/app/app.log
+            sleep 1
+          done
+      volumeMounts:
+        - {name: log-data, mountPath: /var/log/app}
+      resources:
+        requests: {cpu: "10m", memory: "16Mi"}
+        limits: {cpu: "50m", memory: "32Mi"}
+
+    - name: fluent-bit
+      image: fluent/fluent-bit:3.1
+      volumeMounts:
+        - {name: log-data, mountPath: /var/log/app, readOnly: true}
+        - {name: fluent-bit-config, mountPath: /fluent-bit/etc/}
+      resources:
+        requests: {cpu: "20m", memory: "32Mi"}
+        limits: {cpu: "100m", memory: "64Mi"}

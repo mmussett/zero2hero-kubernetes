@@ -1,0 +1,26 @@
+# ClusterRole = a set of permissions that CAN be cluster-wide (or reused
+# across namespaces via multiple RoleBindings, or granted namespace-scoped
+# via a RoleBinding as in role-and-binding.yaml — a ClusterRole isn't
+# automatically cluster-wide, only its BINDING decides that).
+# ClusterRoleBinding = grants a ClusterRole across THE ENTIRE CLUSTER.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: node-reader
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]         # Nodes are cluster-scoped — no namespaced Role could ever grant this
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: node-reader-binding
+subjects:
+  - kind: ServiceAccount
+    name: pod-reader-sa
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: node-reader
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,37 @@
+# Trimmed values for elastic/filebeat, run as a DaemonSet (one per Node --
+# the SAME architectural pattern as Promtail from earlier in this lab,
+# just shipping to Elasticsearch instead of Loki). This is the "EFK"
+# variant of the classic "ELK" stack: Filebeat replaces Logstash as the
+# shipper because it's far lighter-weight and has native Kubernetes
+# autodiscovery -- Logstash still exists and is heavily used for complex
+# server-side PARSING/enrichment pipelines, but for straightforward
+# container log collection Filebeat (or Fluent Bit, see the sidecar labs
+# below) has become the standard choice.
+daemonset:
+  filebeatConfig:
+    filebeat.yml: |
+      filebeat.autodiscover:
+        providers:
+          - type: kubernetes
+            node: ${NODE_NAME}
+            hints.enabled: true
+            hints.default_config:
+              type: container
+              paths:
+                - /var/log/containers/*${data.kubernetes.container.id}.log
+      processors:
+        - add_kubernetes_metadata:
+            host: ${NODE_NAME}
+            matchers:
+              - logs_path: {logs_path: "/var/log/containers/"}
+      output.elasticsearch:
+        host: '${NODE_NAME}'
+        hosts: ['${ELASTICSEARCH_HOST}:${ELASTICSEARCH_PORT}']
+
+  extraEnvs:
+    - {name: ELASTICSEARCH_HOST, value: es-elasticsearch-master}
+    - {name: ELASTICSEARCH_PORT, value: "9200"}
+
+  resources:
+    requests: {cpu: "50m", memory: "100Mi"}
+    limits: {cpu: "200m", memory: "200Mi"}

@@ -1,0 +1,20 @@
+# The base: plain, environment-agnostic manifests plus a ConfigMap
+# GENERATED here (not hand-written as YAML) so its content lives in one
+# place and Kustomize auto-appends a content hash to its name, forcing a
+# Pod restart whenever the data actually changes (recall Day 6: env vars
+# don't live-update — a generated ConfigMap's hash-suffixed name changing
+# is what triggers Kubernetes to roll the Deployment automatically).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - deployment.yaml
+  - service.yaml
+
+configMapGenerator:
+  - name: hello-config
+    literals:
+      - GREETING=Hello from the BASE configuration!
+
+commonLabels:
+  managed-by: kustomize

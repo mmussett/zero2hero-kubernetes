@@ -1,0 +1,24 @@
+# Host-based (virtual-hosting) routing: different hostnames, same Ingress
+# object, no path-stripping gotcha since each app owns the whole path space
+# on its own hostname.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: host-based-ingress
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: hello.zero2hero.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: {name: hello-app-svc, port: {number: 80}}
+    - host: goodbye.zero2hero.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: {name: goodbye-app-svc, port: {number: 80}}

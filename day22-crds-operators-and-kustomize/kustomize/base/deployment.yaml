@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-k8s
+  labels: {app: hello-k8s}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: hello-k8s}}
+  template:
+    metadata: {labels: {app: hello-k8s}}
+    spec:
+      containers:
+        - name: hello-k8s
+          image: localhost:5000/hello-k8s:1.0.0
+          envFrom:
+            - configMapRef: {name: hello-config}
+          ports: [{containerPort: 8080}]
+          readinessProbe: {httpGet: {path: /healthz, port: 8080}}
+          resources:
+            requests: {cpu: "50m", memory: "64Mi"}
+            limits: {cpu: "200m", memory: "128Mi"}

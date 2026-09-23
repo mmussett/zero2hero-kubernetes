@@ -1,0 +1,27 @@
+# k3s ships Traefik as its default IngressClass. This routes by URL PATH
+# to two different backend Services on one hostname.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: path-based-ingress
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/router.middlewares: default-strip-hello-prefix@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: zero2hero.local
+      http:
+        paths:
+          - path: /hello
+            pathType: Prefix
+            backend:
+              service:
+                name: hello-app-svc
+                port: {number: 80}
+          - path: /goodbye
+            pathType: Prefix
+            backend:
+              service:
+                name: goodbye-app-svc
+                port: {number: 80}

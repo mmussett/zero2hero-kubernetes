@@ -1,0 +1,24 @@
+# The SAME Application, with automated sync + self-heal turned on --
+# applied later in the lab, after you've seen a manual sync happen once.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hello-chart
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: REPO_URL_PLACEHOLDER
+    targetRevision: main
+    path: day19-helm/chart/hello-chart
+    helm:
+      valueFiles: []
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd-demo
+  syncPolicy:
+    automated:
+      prune: true      # delete resources that were removed from Git
+      selfHeal: true    # revert any manual, out-of-band cluster change
+    syncOptions:
+      - CreateNamespace=true

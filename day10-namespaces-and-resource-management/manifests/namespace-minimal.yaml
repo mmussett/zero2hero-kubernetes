@@ -1,0 +1,6 @@
+# A Namespace needs nothing but a name — labels, and everything else,
+# are optional additions on top of this.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hello-world

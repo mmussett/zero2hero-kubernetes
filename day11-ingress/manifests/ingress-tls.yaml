@@ -1,0 +1,20 @@
+# References a TLS secret created in the lab (section 2.5) via
+# `kubectl create secret tls` from a self-signed cert — the same Secret
+# shape you built by hand in Day 6, Exercise 3.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tls-ingress
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts: ["secure.zero2hero.local"]
+      secretName: zero2hero-tls
+  rules:
+    - host: secure.zero2hero.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: {name: hello-app-svc, port: {number: 80}}

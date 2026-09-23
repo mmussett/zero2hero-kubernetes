@@ -1,0 +1,78 @@
+# Day 14: dedicated ServiceAccount with token automount disabled (this app
+# never calls the Kubernetes API). Day 15: hardened securityContext,
+# restricted-PSS-compliant. Day 18: HPA. Day 6: env config via Service DNS
+# name, not a hardcoded IP.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backend-sa
+  namespace: {{ .Values.namespace }}
+automountServiceAccountToken: false
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "capstone.labels" . | nindent 4 }}
+    app: backend
+spec:
+  {{- if not .Values.backend.autoscaling.enabled }}
+  replicas: {{ .Values.backend.replicas }}
+  {{- end }}
+  selector: {matchLabels: {app: backend}}
+  strategy:
+    rollingUpdate: {maxSurge: 1, maxUnavailable: 0}
+  template:
+    metadata: {labels: {app: backend}}
+    spec:
+      serviceAccountName: backend-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: backend
+          image: {{ .Values.images.backend }}
+          env:
+            - {name: REDIS_HOST, value: "redis"}
+          ports: [{containerPort: 8080}]
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: ["ALL"]}
+          readinessProbe:
+            httpGet: {path: /healthz, port: 8080}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /healthz, port: 8080}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: {{ .Values.namespace }}
+spec:
+  selector: {app: backend}
+  ports: [{port: 80, targetPort: 8080}]
+{{- if .Values.backend.autoscaling.enabled }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: backend
+  namespace: {{ .Values.namespace }}
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: backend}
+  minReplicas: {{ .Values.backend.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.backend.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: {type: Utilization, averageUtilization: {{ .Values.backend.autoscaling.targetCPUUtilizationPercentage }}}
+{{- end }}

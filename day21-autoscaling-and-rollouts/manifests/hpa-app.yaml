@@ -1,0 +1,32 @@
+# registry.k8s.io/hpa-example is the OFFICIAL Kubernetes documentation's own
+# demo image for the Horizontal Pod Autoscaler walkthrough: every HTTP
+# request it serves burns real CPU computing sqrt() in a loop, making it
+# trivial to trigger visible, reliable autoscaling on demand.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-apache
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {run: php-apache}
+  template:
+    metadata:
+      labels: {run: php-apache}
+    spec:
+      containers:
+        - name: php-apache
+          image: registry.k8s.io/hpa-example
+          ports: [{containerPort: 80}]
+          resources:
+            requests: {cpu: "200m"}
+            limits: {cpu: "500m"}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: php-apache
+  labels: {run: php-apache}
+spec:
+  selector: {run: php-apache}
+  ports: [{port: 80}]

@@ -1,0 +1,27 @@
+# initContainers run sequentially to completion BEFORE any app container starts.
+# Common use: wait for a dependency, or pre-populate a volume.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: init-demo
+spec:
+  volumes:
+    - name: config-vol
+      emptyDir: {}
+  initContainers:
+    - name: fetch-config
+      image: busybox:1.36
+      command:
+        - sh
+        - -c
+        - "echo 'ready=true' > /work/config.txt && echo Init done"
+      volumeMounts:
+        - name: config-vol
+          mountPath: /work
+  containers:
+    - name: app
+      image: busybox:1.36
+      command: ["sh", "-c", "cat /work/config.txt && sleep 3600"]
+      volumeMounts:
+        - name: config-vol
+          mountPath: /work

@@ -1,0 +1,33 @@
+# The smallest valid StatefulSet + its required headless Service. No
+# volumeClaimTemplates, no initContainers — just enough to see stable
+# naming and stable network identity, the two guarantees a StatefulSet
+# gives you even before storage enters the picture.
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-world
+spec:
+  clusterIP: None      # headless — REQUIRED, not optional, for a StatefulSet
+  selector:
+    app: hello-world
+  ports:
+    - port: 8080
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: hello-world
+spec:
+  serviceName: hello-world   # must name the headless Service above
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hello-world
+  template:
+    metadata:
+      labels:
+        app: hello-world
+    spec:
+      containers:
+        - name: hello-world
+          image: localhost:5000/hello-k8s:1.0.0

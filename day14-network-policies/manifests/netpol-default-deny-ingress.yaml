@@ -1,0 +1,11 @@
+# An empty podSelector matches ALL pods in the namespace; an ingress policy
+# type with no rules means "deny all ingress" to those pods. This is the
+# standard "default deny" starting point for zero-trust network policy.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress

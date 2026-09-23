@@ -1,0 +1,12 @@
+# The smallest valid Pod that exists. Every line is required — remove
+# any one and `kubectl apply` rejects it. No ports, no env, no resources,
+# no probes: section 1.1 walks through exactly why each remaining line
+# is here.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hello-world
+spec:
+  containers:
+    - name: hello-world
+      image: localhost:5000/hello-k8s:1.0.0

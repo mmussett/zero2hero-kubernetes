@@ -1,0 +1,12 @@
+# A general-purpose network debugging Pod (dig, curl, nslookup, iproute2 all
+# included) — used throughout the course whenever we need to test connectivity
+# from inside the cluster network.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: netshoot
+spec:
+  containers:
+    - name: netshoot
+      image: nicolaka/netshoot:latest
+      command: ["sleep", "3600"]

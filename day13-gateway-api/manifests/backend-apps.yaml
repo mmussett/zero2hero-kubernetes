@@ -1,0 +1,72 @@
+# Three backends: v1/v2 for the traffic-splitting demo (weighted
+# backendRefs), and vip-backend for the header-matching demo. Every
+# HTTPRoute in this lab targets these same three Services regardless of
+# which Gateway implementation is in front of them — proving portability.
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: hello-v1, labels: {app: hello-v1}}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: hello-v1}}
+  template:
+    metadata: {labels: {app: hello-v1}}
+    spec:
+      containers:
+        - name: hello-k8s
+          image: localhost:5000/hello-k8s:1.0.0
+          env: [{name: GREETING, value: "Response from V1"}]
+          ports: [{containerPort: 8080}]
+          readinessProbe: {httpGet: {path: /healthz, port: 8080}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: hello-v1-svc}
+spec:
+  selector: {app: hello-v1}
+  ports: [{port: 80, targetPort: 8080}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: hello-v2, labels: {app: hello-v2}}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: hello-v2}}
+  template:
+    metadata: {labels: {app: hello-v2}}
+    spec:
+      containers:
+        - name: hello-k8s
+          image: localhost:5000/hello-k8s:1.0.0
+          env: [{name: GREETING, value: "Response from V2"}]
+          ports: [{containerPort: 8080}]
+          readinessProbe: {httpGet: {path: /healthz, port: 8080}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: hello-v2-svc}
+spec:
+  selector: {app: hello-v2}
+  ports: [{port: 80, targetPort: 8080}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: vip-backend, labels: {app: vip-backend}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: vip-backend}}
+  template:
+    metadata: {labels: {app: vip-backend}}
+    spec:
+      containers:
+        - name: hello-k8s
+          image: localhost:5000/hello-k8s:1.0.0
+          env: [{name: GREETING, value: "Welcome, VIP!"}]
+          ports: [{containerPort: 8080}]
+          readinessProbe: {httpGet: {path: /healthz, port: 8080}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: vip-backend-svc}
+spec:
+  selector: {app: vip-backend}
+  ports: [{port: 80, targetPort: 8080}]

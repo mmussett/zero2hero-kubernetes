@@ -1,0 +1,16 @@
+# The smallest valid Job. `completions` and `backoffLimit` both have
+# sane defaults (1 and 6 respectively) — you only need to override them
+# when you actually want something other than "run once, retry up to 6
+# times on failure."
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: hello-world
+spec:
+  template:
+    spec:
+      restartPolicy: Never   # required — Jobs cannot use "Always" (Day 3)
+      containers:
+        - name: hello-world
+          image: busybox:1.36
+          command: ["echo", "Hello, minimal world!"]

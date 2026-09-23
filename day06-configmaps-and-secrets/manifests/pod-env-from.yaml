@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hello-envfrom
+spec:
+  containers:
+    - name: hello-k8s
+      image: localhost:5000/hello-k8s:1.0.0
+      envFrom:
+        - configMapRef: {name: hello-config}
+        - secretRef: {name: hello-db-secret}
+      ports:
+        - containerPort: 8080

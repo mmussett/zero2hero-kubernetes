@@ -1,0 +1,15 @@
+# The ENTIRE cutover is this one selector field: changing "track: blue" to
+# "track: green" (or back) instantly redirects 100% of traffic, because
+# Endpoints/EndpointSlices (Day 5) recompute immediately when the selector
+# no longer matches the old Pods.
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-bg-svc
+spec:
+  selector:
+    app: hello-bg
+    track: blue      # <-- change this single line to "green" to cut over
+  ports:
+    - port: 80
+      targetPort: 8080

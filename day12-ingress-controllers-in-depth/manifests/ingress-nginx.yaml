@@ -1,0 +1,22 @@
+# NGINX Ingress Controller's OWN annotation namespace
+# (nginx.ingress.kubernetes.io/...) — completely different from Traefik's
+# (traefik.ingress.kubernetes.io/...) used in Day 11, even though both
+# solve the identical "strip/rewrite the path before forwarding" problem
+# from Day 11 section 1.3. This is the annotation-portability lesson made
+# concrete: the SAME intent requires DIFFERENT YAML per controller.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hello-nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: icd-nginx.zero2hero.local
+      http:
+        paths:
+          - path: /app(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service: {name: hello-app-svc, port: {number: 80}}

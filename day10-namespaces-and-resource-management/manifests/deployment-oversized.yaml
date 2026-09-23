@@ -1,0 +1,21 @@
+# Requests more CPU than the namespace's ResourceQuota allows in total, to
+# practice diagnosing a quota rejection.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oversized
+  namespace: team-alpha
+spec:
+  replicas: 3
+  selector:
+    matchLabels: {app: oversized}
+  template:
+    metadata:
+      labels: {app: oversized}
+    spec:
+      containers:
+        - name: hello-k8s
+          image: localhost:5000/hello-k8s:1.0.0
+          resources:
+            requests: {cpu: "500m", memory: "256Mi"}
+            limits: {cpu: "500m", memory: "256Mi"}

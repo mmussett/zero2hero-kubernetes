@@ -1,0 +1,28 @@
+# Trimmed values for kong/kong, running Kong's Ingress Controller (KIC)
+# alongside the Kong Gateway data plane itself, in DB-LESS mode (no
+# Postgres to install/manage for this lab — config is derived entirely
+# from Kubernetes objects, which is also increasingly the recommended
+# mode for Kubernetes-native Kong deployments generally).
+env:
+  database: "off"
+
+ingressController:
+  enabled: true
+  ingressClass: kong
+  resources:
+    requests: {cpu: "30m", memory: "64Mi"}
+    limits: {cpu: "150m", memory: "128Mi"}
+
+proxy:
+  type: NodePort
+  http:
+    nodePort: 30200
+  tls:
+    nodePort: 30243
+
+admin:
+  enabled: false   # Admin API off by default in DB-less/k8s-native mode; not needed for this lab
+
+resources:
+  requests: {cpu: "50m", memory: "128Mi"}
+  limits: {cpu: "300m", memory: "256Mi"}

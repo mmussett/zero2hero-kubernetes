@@ -1,0 +1,6 @@
+# Trimmed values for elastic/kibana. elasticsearchHosts is set explicitly
+# at install time in the lab command (kubectl discovers the real ES
+# service name rather than guessing it here — chart versions rename it).
+resources:
+  requests: {cpu: "100m", memory: "512Mi"}
+  limits: {cpu: "500m", memory: "1Gi"}

@@ -1,0 +1,11 @@
+# The smallest useful ResourceQuota: cap ONE thing (object count), rather
+# than a full CPU/memory/PVC budget. `hard` accepts any subset of the
+# quota-able resources — you only list what you actually want to limit.
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: hello-world-quota
+  namespace: hello-world
+spec:
+  hard:
+    pods: "5"

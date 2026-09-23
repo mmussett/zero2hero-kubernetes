@@ -1,0 +1,29 @@
+# Simulates a node-level log/metrics agent: exactly one Pod per Node,
+# automatically, including any Nodes added later.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-agent
+  labels:
+    app: node-agent
+spec:
+  selector:
+    matchLabels:
+      app: node-agent
+  template:
+    metadata:
+      labels:
+        app: node-agent
+    spec:
+      # DaemonSets commonly tolerate control-plane taints so the agent runs
+      # EVERYWHERE, including control-plane nodes (Day 10 covers taints).
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          effect: NoSchedule
+      containers:
+        - name: agent
+          image: busybox:1.36
+          command: ["sh", "-c", "while true; do echo \"$(date) agent alive on $(hostname)\"; sleep 30; done"]
+          resources:
+            requests: {cpu: "10m", memory: "16Mi"}
+            limits: {cpu: "50m", memory: "32Mi"}

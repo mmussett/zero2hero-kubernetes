@@ -1,0 +1,23 @@
+# Two client Pods: one labeled as an approved "frontend", one unlabeled
+# ("rogue") to prove NetworkPolicy actually discriminates between them.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: frontend-client
+  labels: {role: frontend}
+spec:
+  containers:
+    - name: netshoot
+      image: nicolaka/netshoot:latest
+      command: ["sleep", "3600"]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: rogue-client
+  labels: {role: rogue}
+spec:
+  containers:
+    - name: netshoot
+      image: nicolaka/netshoot:latest
+      command: ["sleep", "3600"]

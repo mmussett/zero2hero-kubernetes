@@ -1,0 +1,45 @@
+# Fluent Bit's config, mounted as a ConfigMap volume (Day 6) into the
+# sidecar container below. HOST_PLACEHOLDER is substituted at apply time
+# with the real Elasticsearch service name your Helm install created --
+# never guessed, always looked up (see the lab).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluent-bit-sidecar-config
+  namespace: monitoring
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush         5
+        Log_Level     info
+        Parsers_File  parsers.conf
+
+    [INPUT]
+        Name              tail
+        Path              /var/log/app/app.log
+        Tag               app.logs
+        Refresh_Interval  5
+        Read_from_Head    On
+
+    [FILTER]
+        Name         parser
+        Match        app.logs
+        Key_Name     log
+        Parser       app_json
+        Reserve_Data On
+
+    [OUTPUT]
+        Name             es
+        Match            app.logs
+        Host             HOST_PLACEHOLDER
+        Port             9200
+        Index            app-sidecar-fluentbit
+        Suppress_Type_Name On
+        tls              Off
+
+  parsers.conf: |
+    [PARSER]
+        Name        app_json
+        Format      json
+        Time_Key    time
+        Time_Format %Y-%m-%dT%H:%M:%SZ

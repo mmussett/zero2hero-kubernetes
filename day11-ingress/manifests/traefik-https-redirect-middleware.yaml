@@ -1,0 +1,31 @@
+# Forces HTTP -> HTTPS. Without this, ingress-tls.yaml's host is reachable
+# on BOTH protocols simultaneously (section 1.5) -- this is what you'd add
+# the moment you decide plain HTTP should never be allowed for that host.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: https-redirect
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tls-ingress-redirect
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: default-https-redirect@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts: ["secure-redirect.zero2hero.local"]
+      secretName: zero2hero-tls-redirect
+  rules:
+    - host: secure-redirect.zero2hero.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: {name: hello-app-svc, port: {number: 80}}

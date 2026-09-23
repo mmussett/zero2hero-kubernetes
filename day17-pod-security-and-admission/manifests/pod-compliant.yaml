@@ -1,0 +1,23 @@
+# Fully compliant with the "restricted" Pod Security Standard — this is the
+# production-grade baseline every application Pod should meet.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: compliant-pod
+  namespace: restricted-ns
+spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: hello-k8s
+      image: localhost:5000/hello-k8s:1.0.0
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+      resources:
+        requests: {cpu: "50m", memory: "64Mi"}
+        limits: {cpu: "200m", memory: "128Mi"}

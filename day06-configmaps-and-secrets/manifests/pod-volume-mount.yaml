@@ -1,0 +1,30 @@
+# Mounts the ConfigMap and Secret as files instead of env vars. This is the
+# preferred approach for whole config files, and the ONLY approach that
+# supports live-update: kubelet syncs mounted ConfigMap/Secret files
+# periodically (subject to kubelet sync period + cache propagation delay),
+# while env vars are fixed at container start and never update.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hello-volumes
+spec:
+  containers:
+    - name: hello-k8s
+      image: localhost:5000/hello-k8s:1.0.0
+      volumeMounts:
+        - name: config-vol
+          mountPath: /etc/config
+          readOnly: true
+        - name: secret-vol
+          mountPath: /etc/secret
+          readOnly: true
+      ports:
+        - containerPort: 8080
+  volumes:
+    - name: config-vol
+      configMap:
+        name: hello-config
+    - name: secret-vol
+      secret:
+        secretName: hello-db-secret
+        defaultMode: 0400

@@ -1,0 +1,51 @@
+# Two independent "apps" to route between: hello-k8s (from Day 1) and a
+# second, visually distinct app so routing decisions are easy to see.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-app
+  labels: {app: hello-app}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: hello-app}}
+  template:
+    metadata: {labels: {app: hello-app}}
+    spec:
+      containers:
+        - name: hello-k8s
+          image: localhost:5000/hello-k8s:1.0.0
+          env: [{name: GREETING, value: "You reached HELLO-APP"}]
+          ports: [{containerPort: 8080}]
+          readinessProbe: {httpGet: {path: /healthz, port: 8080}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: hello-app-svc}
+spec:
+  selector: {app: hello-app}
+  ports: [{port: 80, targetPort: 8080}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goodbye-app
+  labels: {app: goodbye-app}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: goodbye-app}}
+  template:
+    metadata: {labels: {app: goodbye-app}}
+    spec:
+      containers:
+        - name: hello-k8s
+          image: localhost:5000/hello-k8s:1.0.0
+          env: [{name: GREETING, value: "You reached GOODBYE-APP"}]
+          ports: [{containerPort: 8080}]
+          readinessProbe: {httpGet: {path: /healthz, port: 8080}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: goodbye-app-svc}
+spec:
+  selector: {app: goodbye-app}
+  ports: [{port: 80, targetPort: 8080}]

@@ -1,0 +1,30 @@
+# A manually-provisioned (static) PersistentVolume, contrasted with the
+# dynamic provisioning in pvc-local-path.yaml. Run:
+#   sudo mkdir -p /mnt/static-pv-demo && sudo chmod 777 /mnt/static-pv-demo
+# on the node BEFORE applying this, since nothing creates the backing
+# directory for you with hostPath-based static PVs.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: static-pv-demo
+spec:
+  capacity:
+    storage: 500Mi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    path: /mnt/static-pv-demo
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: static-pvc-demo
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  resources:
+    requests:
+      storage: 500Mi

@@ -1,0 +1,54 @@
+# Identical shape to sidecar-fluentbit-pod.yaml, swapping the sidecar
+# implementation for Fluentd -- same app, same shared volume, same job.
+# Compare the two directly: resource requests, image size, and config
+# syntax verbosity are the real-world trade-off this lab is teaching.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sidecar-fluentd-demo
+  namespace: monitoring
+  labels: {app: sidecar-fluentd-demo}
+spec:
+  volumes:
+    - name: log-data
+      emptyDir: {}
+    - name: fluentd-config
+      configMap: {name: fluentd-sidecar-config}
+  containers:
+    - name: app
+      image: busybox:1.36
+      command:
+        - sh
+        - -c
+        - |
+          mkdir -p /var/log/app
+          i=0
+          while true; do
+            i=$((i+1))
+            ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+            lvl="INFO"
+            [ $((i % 7)) -eq 0 ] && lvl="WARN"
+            [ $((i % 13)) -eq 0 ] && lvl="ERROR"
+            echo "{\"time\":\"$ts\",\"level\":\"$lvl\",\"seq\":$i,\"msg\":\"file-only heartbeat $i\"}" >> /var/log/app/app.log
+            sleep 1
+          done
+      volumeMounts:
+        - {name: log-data, mountPath: /var/log/app}
+      resources:
+        requests: {cpu: "10m", memory: "16Mi"}
+        limits: {cpu: "50m", memory: "32Mi"}
+
+    - name: fluentd
+      # This tag bundles fluent-plugin-elasticsearch pre-installed --
+      # the vanilla fluent/fluentd image does NOT include it, since
+      # Fluentd's plugin ecosystem is opt-in per image/build, unlike
+      # Fluent Bit's built-in output plugins.
+      image: fluent/fluentd:v1.16-debian-elasticsearch7-1
+      env:
+        - {name: FLUENTD_CONF, value: "fluent.conf"}
+      volumeMounts:
+        - {name: log-data, mountPath: /var/log/app, readOnly: true}
+        - {name: fluentd-config, mountPath: /fluentd/etc/}
+      resources:
+        requests: {cpu: "50m", memory: "128Mi"}
+        limits: {cpu: "200m", memory: "256Mi"}

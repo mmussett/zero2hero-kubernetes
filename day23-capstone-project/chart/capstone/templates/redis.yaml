@@ -1,0 +1,51 @@
+# Day 8: StatefulSet + headless Service, giving Redis stable storage and
+# a predictable DNS name ("redis-0.redis...") even though this app only
+# runs a single replica — the pattern is what matters for the capstone.
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: {{ .Values.namespace }}
+  labels: {app: redis}
+spec:
+  clusterIP: None
+  selector: {app: redis}
+  ports: [{port: 6379}]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  namespace: {{ .Values.namespace }}
+spec:
+  serviceName: redis
+  replicas: 1
+  selector: {matchLabels: {app: redis}}
+  template:
+    metadata: {labels: {app: redis}}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        fsGroup: 999
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: redis
+          image: {{ .Values.images.redis }}
+          ports: [{containerPort: 6379}]
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: ["ALL"]}
+          readinessProbe:
+            exec: {command: ["redis-cli", "ping"]}
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.redis.resources | nindent 12 }}
+          volumeMounts:
+            - {name: data, mountPath: /data}
+  volumeClaimTemplates:
+    - metadata: {name: data}
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: {{ .Values.redis.storageClassName }}
+        resources: {requests: {storage: {{ .Values.redis.storage }}}}

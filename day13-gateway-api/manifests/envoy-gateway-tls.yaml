@@ -1,0 +1,36 @@
+# TLS termination on a Gateway listener -- the Gateway API equivalent of
+# Day 11's Ingress `spec.tls` block, using the SAME kubernetes.io/tls
+# Secret shape (Day 6, Exercise 3). A separate Gateway from envoy-gw,
+# purely so this TLS demo doesn't disturb the plain-HTTP listener used
+# by the rest of this day's labs.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy-gw-tls
+spec:
+  gatewayClassName: envoy
+  listeners:
+    - name: https
+      protocol: HTTPS
+      port: 30350
+      tls:
+        mode: Terminate                # decrypt HERE, forward plain HTTP to the backend -- same model as Ingress
+        certificateRefs:
+          - kind: Secret
+            name: gw-tls-secret          # created in the lab via `kubectl create secret tls`
+      allowedRoutes:
+        namespaces: {from: Same}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: hello-route-tls
+spec:
+  parentRefs:
+    - {name: envoy-gw-tls}
+  hostnames: ["gw-secure.zero2hero.local"]
+  rules:
+    - matches:
+        - path: {type: PathPrefix, value: /}
+      backendRefs:
+        - {name: hello-v1-svc, port: 80}

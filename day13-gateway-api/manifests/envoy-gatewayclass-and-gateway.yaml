@@ -1,0 +1,19 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: envoy
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy-gw
+spec:
+  gatewayClassName: envoy
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 30300   # k3s's ServiceLB binds this exact port on the host, avoiding a clash with Traefik on 80/443
+      allowedRoutes:
+        namespaces: {from: Same}

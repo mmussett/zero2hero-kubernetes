@@ -1,0 +1,26 @@
+# Demonstrates Pod-level and Container-level SecurityContext together.
+# Container-level settings override Pod-level ones for that one container.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: secure-pod
+spec:
+  securityContext:            # Pod-level: applies to every container by default
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    runAsNonRoot: true
+  containers:
+    - name: hello-k8s
+      image: localhost:5000/hello-k8s:1.0.0
+      securityContext:        # Container-level: further restricts just this container
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop: ["ALL"]
+      volumeMounts:
+        - name: tmp
+          mountPath: /tmp     # writable scratch space, since the root FS is now read-only
+  volumes:
+    - name: tmp
+      emptyDir: {}

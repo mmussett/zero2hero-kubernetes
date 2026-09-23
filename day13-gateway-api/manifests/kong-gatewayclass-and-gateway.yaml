@@ -1,0 +1,57 @@
+# Kong's Gateway API support is delivered by the Kong Gateway Operator
+# (KGO), which needs one Kong-specific CRD -- GatewayConfiguration -- to
+# describe HOW to run the underlying Kong Gateway data plane (DB-less,
+# resource sizing, etc.) before a GatewayClass can reference it. This is
+# the extra piece the other two implementations don't need, reflecting
+# Kong Gateway's heavier, more configurable nature from Day 12.
+#
+# NOTE: Kong Gateway Operator's exact CRD shape has changed across
+# releases as Gateway API support has matured -- if this exact
+# apiVersion/kind has moved by the time you run this, check
+# https://docs.konghq.com/gateway-operator/latest/ for the current shape;
+# the CONCEPTS below (GatewayConfiguration feeding a GatewayClass) remain
+# stable even if field names shift.
+apiVersion: gateway-operator.konghq.com/v1beta1
+kind: GatewayConfiguration
+metadata:
+  name: kong-gw-config
+spec:
+  dataPlaneOptions:
+    deployment:
+      replicas: 1
+      podTemplateSpec:
+        spec:
+          containers:
+            - name: proxy
+              image: kong:3.7
+  controlPlaneOptions:
+    deployment:
+      podTemplateSpec:
+        spec:
+          containers:
+            - name: controller
+              image: kong/kubernetes-ingress-controller:3.2
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: kong
+spec:
+  controllerName: konghq.com/gateway-operator
+  parametersRef:
+    group: gateway-operator.konghq.com
+    kind: GatewayConfiguration
+    name: kong-gw-config
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: kong-gw
+spec:
+  gatewayClassName: kong
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 30500
+      allowedRoutes:
+        namespaces: {from: Same}

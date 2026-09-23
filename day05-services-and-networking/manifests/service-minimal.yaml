@@ -1,0 +1,13 @@
+# The smallest valid Service that exists. Note there's no `type:` field
+# at all — ClusterIP is the implicit default when you omit it, not
+# something you have to spell out.
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-world
+spec:
+  selector:
+    app: hello-world
+  ports:
+    - port: 80
+      targetPort: 8080

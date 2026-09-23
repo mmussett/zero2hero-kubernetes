@@ -1,0 +1,14 @@
+# Traefik-specific CRD (Day 19 covers CRDs generally). Path-based routing
+# forwards the FULL original path ("/hello") to the backend by default — our
+# app only understands "/", so we strip the prefix before forwarding. This
+# is a common real-world gotcha with path-based Ingress routing worth
+# seeing once, deliberately.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-hello-prefix
+spec:
+  stripPrefix:
+    prefixes:
+      - /hello
+      - /goodbye

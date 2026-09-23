@@ -1,0 +1,14 @@
+# k3s ships a default StorageClass, "local-path", that dynamically
+# provisions a PersistentVolume backed by a directory on whichever node the
+# Pod is scheduled to, the moment a PVC requests it.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hello-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi

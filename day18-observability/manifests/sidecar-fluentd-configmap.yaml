@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-sidecar-config
+  namespace: monitoring
+data:
+  fluent.conf: |
+    <source>
+      @type tail
+      path /var/log/app/app.log
+      pos_file /tmp/app-log.pos
+      tag app.logs
+      <parse>
+        @type json
+        time_key time
+        time_format %Y-%m-%dT%H:%M:%SZ
+      </parse>
+    </source>
+
+    <match app.logs>
+      @type elasticsearch
+      host HOST_PLACEHOLDER
+      port 9200
+      logstash_format true
+      logstash_prefix app-sidecar-fluentd
+      include_tag_key true
+      <buffer>
+        flush_interval 5s
+      </buffer>
+    </match>

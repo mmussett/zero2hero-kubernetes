@@ -1,0 +1,14 @@
+# k3s ships its own lightweight LoadBalancer implementation (ServiceLB /
+# "klipper-lb") which binds the port directly on the host node, simulating
+# a cloud LoadBalancer on a machine that doesn't have one.
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-k8s-lb
+spec:
+  type: LoadBalancer
+  selector:
+    app: hello-k8s
+  ports:
+    - port: 8080
+      targetPort: 8080

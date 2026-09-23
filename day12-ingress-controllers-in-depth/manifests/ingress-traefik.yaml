@@ -1,0 +1,16 @@
+# The SAME backend, routed via Traefik (Day 11's controller) — the
+# baseline every other controller in this lab is compared against.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hello-traefik
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: icd-traefik.zero2hero.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: {name: hello-app-svc, port: {number: 80}}

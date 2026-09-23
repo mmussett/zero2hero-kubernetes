@@ -1,0 +1,34 @@
+# Kong's plugin model is a THIRD distinct philosophy, worth contrasting
+# directly with what you've already seen:
+#   Traefik (Day 11): a Middleware CRD, referenced by a router annotation
+#   nginx:             config baked directly into an annotation's VALUE
+#   Kong:              a KongPlugin CRD holding the config, referenced by
+#                       an annotation that names it (closer to Traefik's
+#                       model than nginx's) -- and the SAME plugin
+#                       mechanism also does auth, transformations, etc.,
+#                       previewing Day 13's fuller "gateway" feature set.
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: hello-rate-limit
+config:
+  minute: 5
+  policy: local
+plugin: rate-limiting
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hello-kong-ratelimited
+  annotations:
+    konghq.com/plugins: hello-rate-limit
+spec:
+  ingressClassName: kong
+  rules:
+    - host: icd-kong-ratelimit.zero2hero.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: {name: hello-app-svc, port: {number: 80}}

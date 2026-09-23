@@ -1,0 +1,21 @@
+# hostPath mounts a path from the NODE's own filesystem directly into the
+# Pod. It survives Pod deletion (the data lives on the node, not the Pod),
+# but ties the Pod to that specific node and is a common security risk if
+# misused (Day 15) — shown here purely to contrast with emptyDir/PVC.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hostpath-demo
+spec:
+  containers:
+    - name: writer
+      image: busybox:1.36
+      command: ["sh", "-c", "date >> /data/hostpath-log.txt; sleep 3600"]
+      volumeMounts:
+        - name: host-data
+          mountPath: /data
+  volumes:
+    - name: host-data
+      hostPath:
+        path: /tmp/k8s-hostpath-demo
+        type: DirectoryOrCreate

@@ -1,0 +1,23 @@
+# The smallest valid CustomResourceDefinition. `schema.openAPIV3Schema` is
+# the one field you can't omit even at the minimum — every CRD needs SOME
+# schema, even if (as here) it's "type: object, accept anything."
+# crd-website.yaml (used later this day) adds real validation on top of
+# this exact same shape.
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: helloworlds.training.zero2hero.dev
+spec:
+  group: training.zero2hero.dev
+  names:
+    kind: HelloWorld
+    plural: helloworlds
+  scope: Namespaced
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          x-kubernetes-preserve-unknown-fields: true   # no field-level validation at all — accept anything under spec

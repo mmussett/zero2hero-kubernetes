@@ -1,0 +1,28 @@
+# Trimmed values for elastic/elasticsearch, sized for a small lab VM.
+# A single node covering the master+data+ingest roles, tiny heap, no
+# persistent storage, and security disabled (self-signed TLS/auth setup
+# is real operational work you'd do for production, deliberately skipped
+# here to keep today's lab focused on the LOGGING pipeline, not certs).
+replicas: 1
+minimumMasterNodes: 1
+
+esJavaOpts: "-Xms512m -Xmx512m"
+
+resources:
+  requests: {cpu: "250m", memory: "1Gi"}
+  limits: {cpu: "1", memory: "1.5Gi"}
+
+volumeClaimTemplate:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: local-path
+  resources:
+    requests: {storage: 2Gi}
+
+extraEnvs:
+  - {name: xpack.security.enabled, value: "false"}
+  - {name: xpack.security.transport.ssl.enabled, value: "false"}
+  - {name: xpack.security.http.ssl.enabled, value: "false"}
+
+readinessProbe:
+  initialDelaySeconds: 30
+  timeoutSeconds: 5

@@ -1,0 +1,26 @@
+# Role = a set of permissions, scoped to ONE namespace.
+# RoleBinding = grants that Role to a specific subject (here, a ServiceAccount),
+# also scoped to that same namespace.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pod-reader
+  namespace: default
+rules:
+  - apiGroups: [""]              # "" = the core API group (Pods, Services, etc.)
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-reader-binding
+  namespace: default
+subjects:
+  - kind: ServiceAccount
+    name: pod-reader-sa
+    namespace: default
+roleRef:
+  kind: Role
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io

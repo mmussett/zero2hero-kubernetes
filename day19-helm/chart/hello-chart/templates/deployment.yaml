@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "hello-chart.fullname" . }}
+  labels:
+    {{- include "hello-chart.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Chart.Name }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Chart.Name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: GREETING
+              value: {{ .Values.greeting | quote }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: {{ .Values.service.targetPort }}
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

@@ -1,0 +1,22 @@
+# The absolute minimum valid Deployment. Every line here is REQUIRED —
+# remove any one of them and `kubectl apply` rejects it outright. No
+# probes, no resources, no env, no strategy tuning: just enough to get
+# one container running and self-healing. Section 1.1 walks through
+# exactly what each line does and why it's required.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-world
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-world
+  template:
+    metadata:
+      labels:
+        app: hello-world
+    spec:
+      containers:
+        - name: hello-world
+          image: localhost:5000/hello-k8s:1.0.0

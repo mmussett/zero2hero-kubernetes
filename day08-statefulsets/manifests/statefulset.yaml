@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: hello-stateful
+spec:
+  serviceName: hello-stateful   # must match the headless Service's name
+  replicas: 3
+  selector:
+    matchLabels:
+      app: hello-stateful
+  podManagementPolicy: OrderedReady   # default: strictly sequential start/stop
+  template:
+    metadata:
+      labels:
+        app: hello-stateful
+    spec:
+      initContainers:
+        - name: record-identity
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - 'echo "I am $(hostname), and I persist across restarts" > /data/identity.txt'
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      containers:
+        - name: hello-k8s
+          image: localhost:5000/hello-k8s:1.0.0
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet: {path: /healthz, port: 8080}
+            periodSeconds: 5
+          volumeMounts:
+            - name: data
+              mountPath: /data
+  volumeClaimTemplates:               # ONE PVC created PER REPLICA, automatically
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: local-path
+        resources:
+          requests:
+            storage: 100Mi

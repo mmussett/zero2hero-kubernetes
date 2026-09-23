@@ -1,0 +1,17 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+.claude/
+
+# Local kube/helm artifacts learners may generate while following labs
+kubeconfig*.yaml
+*.local.yaml
+charts/*.tgz
+
+# Python (Day 1 sample app, if run outside Docker)
+__pycache__/
+*.pyc
+.venv/

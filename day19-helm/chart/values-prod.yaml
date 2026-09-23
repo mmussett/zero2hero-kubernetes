@@ -1,0 +1,11 @@
+# Example environment-specific override file — applied ON TOP OF the
+# chart's own values.yaml, not instead of it. Only the keys listed here
+# change; everything else keeps its chart default.
+replicaCount: 4
+greeting: "Hello from PRODUCTION!"
+ingress:
+  enabled: true
+  host: hello.zero2hero.local
+resources:
+  requests: {cpu: 100m, memory: 128Mi}
+  limits: {cpu: 500m, memory: 256Mi}

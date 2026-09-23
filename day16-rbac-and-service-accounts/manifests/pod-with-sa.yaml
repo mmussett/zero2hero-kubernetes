@@ -1,0 +1,25 @@
+# A Pod that uses the API from INSIDE the cluster, authenticating as its
+# ServiceAccount via the auto-mounted token — the same mechanism every
+# controller and Operator (Day 19) uses to talk to the API server.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: api-caller
+spec:
+  serviceAccountName: pod-reader-sa
+  containers:
+    - name: kubectl
+      image: bitnami/kubectl:1.30
+      command: ["sleep", "3600"]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: api-caller-default-sa
+spec:
+  # No serviceAccountName specified -> uses the namespace's "default" SA,
+  # which by design has NO permissions at all beyond authenticating.
+  containers:
+    - name: kubectl
+      image: bitnami/kubectl:1.30
+      command: ["sleep", "3600"]

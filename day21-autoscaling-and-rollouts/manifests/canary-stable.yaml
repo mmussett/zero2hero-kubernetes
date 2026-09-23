@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-canary-stable
+  labels: {app: hello-canary, track: stable}
+spec:
+  replicas: 9    # 9 stable + 1 canary = ~10% of traffic hits canary, approximated by replica ratio
+  selector: {matchLabels: {app: hello-canary, track: stable}}
+  template:
+    metadata: {labels: {app: hello-canary, track: stable}}
+    spec:
+      containers:
+        - name: hello-k8s
+          image: localhost:5000/hello-k8s:1.0.0
+          env: [{name: GREETING, value: "STABLE version"}]
+          ports: [{containerPort: 8080}]
+          readinessProbe: {httpGet: {path: /healthz, port: 8080}}

@@ -1,0 +1,26 @@
+# ONE backend, reused by every Ingress in this lab, so the only variable
+# being tested is "which controller/IngressClass handled this request" —
+# not "which app."
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-app
+  labels: {app: hello-app}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: hello-app}}
+  template:
+    metadata: {labels: {app: hello-app}}
+    spec:
+      containers:
+        - name: hello-k8s
+          image: localhost:5000/hello-k8s:1.0.0
+          ports: [{containerPort: 8080}]
+          readinessProbe: {httpGet: {path: /healthz, port: 8080}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: hello-app-svc}
+spec:
+  selector: {app: hello-app}
+  ports: [{port: 80, targetPort: 8080}]

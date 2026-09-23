@@ -1,0 +1,6 @@
+apiVersion: training.zero2hero.dev/v1
+kind: HelloWorld
+metadata:
+  name: hello-world
+spec:
+  message: "Hello, minimal world!"

@@ -1,0 +1,7 @@
+# The smallest valid ConfigMap: a name and one key-value pair under `data`.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hello-world-config
+data:
+  GREETING: "Hello, minimal world!"

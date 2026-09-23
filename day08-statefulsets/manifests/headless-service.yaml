@@ -1,0 +1,16 @@
+# A headless Service (clusterIP: None) is REQUIRED to give a StatefulSet's
+# Pods their stable, individually-addressable DNS names
+# (<pod-name>.<service-name>.<namespace>.svc.cluster.local).
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-stateful
+  labels:
+    app: hello-stateful
+spec:
+  clusterIP: None
+  selector:
+    app: hello-stateful
+  ports:
+    - port: 8080
+      name: http

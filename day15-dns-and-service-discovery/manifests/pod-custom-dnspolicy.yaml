@@ -1,0 +1,22 @@
+# dnsPolicy: None + explicit dnsConfig lets a Pod override cluster DNS
+# entirely — useful for edge cases (custom resolvers, hybrid on-prem DNS).
+apiVersion: v1
+kind: Pod
+metadata:
+  name: custom-dns-pod
+spec:
+  dnsPolicy: "None"
+  dnsConfig:
+    nameservers:
+      - "8.8.8.8"
+    searches:
+      - "default.svc.cluster.local"
+      - "svc.cluster.local"
+      - "cluster.local"
+    options:
+      - name: ndots
+        value: "5"
+  containers:
+    - name: netshoot
+      image: nicolaka/netshoot:latest
+      command: ["sleep", "3600"]

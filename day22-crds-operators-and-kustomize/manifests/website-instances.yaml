@@ -1,0 +1,15 @@
+apiVersion: training.zero2hero.dev/v1alpha1
+kind: Website
+metadata:
+  name: marketing-site
+spec:
+  greeting: "Welcome to the marketing site!"
+  replicas: 2
+---
+apiVersion: training.zero2hero.dev/v1alpha1
+kind: Website
+metadata:
+  name: docs-site
+spec:
+  greeting: "Welcome to the docs site!"
+  replicas: 1

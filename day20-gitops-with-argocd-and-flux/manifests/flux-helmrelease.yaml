@@ -1,0 +1,37 @@
+# Flux's DECOMPOSED architecture, in two objects, contrasted directly
+# with ArgoCD's single Application above:
+#   GitRepository (source-controller) -- "here is a git repo, poll it
+#                                          for changes"
+#   HelmRelease   (helm-controller)    -- "render THIS chart path from
+#                                          THAT GitRepository, and keep
+#                                          a Helm release in sync with it"
+# Two composable, independently-scaled controllers doing together what
+# ArgoCD's Application does as one integrated object -- the philosophical
+# difference section 1.4 of the README describes.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: zero2hero-repo
+  namespace: flux-system
+spec:
+  interval: 1m
+  url: REPO_URL_PLACEHOLDER
+  ref:
+    branch: main
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: hello-chart
+  namespace: flux-system
+spec:
+  interval: 1m
+  targetNamespace: flux-demo
+  install:
+    createNamespace: true
+  chart:
+    spec:
+      chart: day19-helm/chart/hello-chart
+      sourceRef:
+        kind: GitRepository
+        name: zero2hero-repo

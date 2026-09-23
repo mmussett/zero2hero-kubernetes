@@ -1,0 +1,30 @@
+# Emits one structured-ish log line per second, so there's continuous,
+# interesting log volume to view via `kubectl logs`, then via Loki/Grafana.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log-generator
+  namespace: monitoring
+  labels: {app: log-generator}
+spec:
+  replicas: 2
+  selector: {matchLabels: {app: log-generator}}
+  template:
+    metadata: {labels: {app: log-generator}}
+    spec:
+      containers:
+        - name: log-generator
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              i=0
+              while true; do
+                i=$((i+1))
+                lvl="INFO"
+                if [ $((i % 7)) -eq 0 ]; then lvl="WARN"; fi
+                if [ $((i % 13)) -eq 0 ]; then lvl="ERROR"; fi
+                echo "{\"level\":\"$lvl\",\"seq\":$i,\"host\":\"$(hostname)\",\"msg\":\"heartbeat $i\"}"
+                sleep 1
+              done

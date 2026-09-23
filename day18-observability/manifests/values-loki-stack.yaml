@@ -1,0 +1,17 @@
+# Trimmed-down values for the "loki-stack" Helm chart (Loki + Promtail),
+# sized for the lab VM: single-binary Loki, no long-term object storage,
+# small resource requests.
+loki:
+  persistence:
+    enabled: false
+  resources:
+    requests: {cpu: "50m", memory: "128Mi"}
+    limits: {cpu: "200m", memory: "256Mi"}
+
+promtail:
+  resources:
+    requests: {cpu: "25m", memory: "64Mi"}
+    limits: {cpu: "100m", memory: "128Mi"}
+
+grafana:
+  enabled: false   # we reuse the Grafana already installed with kube-prometheus-stack

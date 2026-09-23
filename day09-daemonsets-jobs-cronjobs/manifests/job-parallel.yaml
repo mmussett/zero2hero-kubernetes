@@ -1,0 +1,17 @@
+# completions: 6 with parallelism: 2 means: run 6 total successful
+# completions, at most 2 Pods running at any given time.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: parallel-job
+spec:
+  completions: 6
+  parallelism: 2
+  backoffLimit: 4
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: work
+          image: busybox:1.36
+          command: ["sh", "-c", "echo Processing item; sleep $((RANDOM % 5 + 3))"]
