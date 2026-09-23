@@ -39,10 +39,10 @@ A [**multi-stage build**](https://docs.docker.com/build/building/multi-stage/) u
 ### 2.1 Install Docker (Ubuntu/Debian)
 
 ```bash
-curl -fsSL https://get.docker.com | sudo sh
-sudo usermod -aG docker $USER
-newgrp docker   # or log out/in
-docker version
+curl -fsSL https://get.docker.com | sudo sh    # official convenience script — detects your distro, installs the right packages
+sudo usermod -aG docker $USER                  # add yourself to the 'docker' group so you don't need sudo for every command
+newgrp docker   # or log out/in                # refresh your shell's group membership without a full logout
+docker version                                 # confirms both the client and the daemon are up, and shows their versions
 ```
 
 > Already have Docker, Podman, or `nerdctl`? Any OCI-compatible builder works for this whole course; swap `docker` for your tool of choice.
@@ -50,12 +50,12 @@ docker version
 ### 2.2 Run your first container
 
 ```bash
-docker run --rm hello-world
-docker run --rm -it ubuntu:24.04 bash
+docker run --rm hello-world              # pull + run a minimal test image; proves your install works end to end; --rm deletes the container on exit
+docker run --rm -it ubuntu:24.04 bash    # -i keeps stdin open, -t allocates a pseudo-TTY — together they give you a usable interactive shell
 # inside the container:
-ps aux        # notice PID 1 is bash, not your host's init
-hostname      # a random hex id — its own UTS namespace
-exit
+ps aux        # notice PID 1 is bash, not your host's init  — this container's own PID namespace, isolated from the host's process tree
+hostname      # a random hex id — its own UTS namespace     — proves the container has its own hostname, independent of the host's
+exit          # leaves the shell; since bash was PID 1, the container stops here, and --rm deletes it immediately after
 ```
 
 ### 2.3 Build the sample app
@@ -63,28 +63,28 @@ exit
 This repo's `app/` folder contains a tiny Flask API. Build and run it:
 
 ```bash
-cd app
-docker build -t hello-k8s:1.0.0 .
-docker run --rm -d -p 8080:8080 --name hello-k8s hello-k8s:1.0.0
-curl localhost:8080/
-curl localhost:8080/healthz
+cd app                                                            # the Dockerfile and Flask source both live here
+docker build -t hello-k8s:1.0.0 .                                 # build an image from ./Dockerfile, tagged hello-k8s:1.0.0
+docker run --rm -d -p 8080:8080 --name hello-k8s hello-k8s:1.0.0  # run it in the background (-d), map container:8080 to host:8080, give it a stable name
+curl localhost:8080/                                              # confirms the app is actually reachable from outside the container over the network
+curl localhost:8080/healthz                                       # hits the health endpoint the same way a Kubernetes liveness probe will later (Day 3)
 ```
 
 ### 2.4 Inspect it like you'll later inspect a Pod
 
 ```bash
-docker ps
-docker logs hello-k8s
-docker exec -it hello-k8s /bin/sh -c "id; ls /app"
-docker inspect hello-k8s | jq '.[0].State, .[0].Config.Env'
-docker stop hello-k8s
+docker ps                                                       # lists running containers — confirms hello-k8s shows as "Up"
+docker logs hello-k8s                                           # everything the app has printed to stdout/stderr since it started
+docker exec -it hello-k8s /bin/sh -c "id; ls /app"               # run commands inside the already-running container, without stopping it — check the user it runs as, and its filesystem
+docker inspect hello-k8s | jq '.[0].State, .[0].Config.Env'     # full JSON metadata, filtered down to just runtime state and configured env vars
+docker stop hello-k8s                                            # graceful stop (SIGTERM, then SIGKILL after a timeout) now that inspection is done
 ```
 
 ### 2.5 Understand layers
 
 ```bash
-docker history hello-k8s:1.0.0
-docker image inspect hello-k8s:1.0.0 --format '{{.Size}}'
+docker history hello-k8s:1.0.0                              # every layer in the image, in build order, with each layer's own size — shows where the size actually comes from
+docker image inspect hello-k8s:1.0.0 --format '{{.Size}}'   # just the image's total size in bytes, extracted from the same JSON 'docker image inspect' returns in full
 ```
 
 Change one line in `app.py`, rebuild, and re-run `docker history`. Notice only the layers *after* the `COPY app.py .` instruction rebuild — everything above the change is reused from cache. This is why Dockerfiles put rarely-changing instructions (installing dependencies) *before* frequently-changing ones (copying source code).
@@ -92,11 +92,11 @@ Change one line in `app.py`, rebuild, and re-run `docker history`. Notice only t
 ### 2.6 Run a local registry (this is exactly how k3s will pull your images later)
 
 ```bash
-docker run -d -p 5000:5000 --restart=always --name registry registry:2
-docker tag hello-k8s:1.0.0 localhost:5000/hello-k8s:1.0.0
-docker push localhost:5000/hello-k8s:1.0.0
-docker rmi hello-k8s:1.0.0 localhost:5000/hello-k8s:1.0.0
-docker pull localhost:5000/hello-k8s:1.0.0
+docker run -d -p 5000:5000 --restart=always --name registry registry:2   # run the official Registry image itself as a container, exposed on :5000, restarting automatically if it ever crashes
+docker tag hello-k8s:1.0.0 localhost:5000/hello-k8s:1.0.0                # add a second name that encodes the registry's host:port — this is how 'docker push/pull' know where to send data
+docker push localhost:5000/hello-k8s:1.0.0                               # upload the image's layers to that registry
+docker rmi hello-k8s:1.0.0 localhost:5000/hello-k8s:1.0.0                # delete BOTH local copies/tags, so the only remaining copy is on the registry
+docker pull localhost:5000/hello-k8s:1.0.0                               # pull it back — since no local copy exists anymore, this proves the round trip genuinely worked
 ```
 
 You now have a private registry running on your machine — Day 2's k3s cluster will pull from it directly.
