@@ -1,0 +1,25 @@
+title: "Zero to Hero for Kubernetes"
+description: "A 23-day, hands-on Kubernetes course from zero to production-minded practitioner — entirely on a local k3s cluster."
+theme: jekyll-theme-cayman
+
+# Jekyll's built-in "pretty" style: every page gets a clean, extension-less,
+# trailing-slash URL based on its path + filename (e.g. day03-pods/README.md
+# -> /day03-pods/README/) instead of the default .../README.html. index.md
+# files are exempt from this template by Jekyll convention and always
+# resolve to their directory's root ("/", or "/day03-pods/" for a
+# per-folder index.md), independent of this setting.
+permalink: pretty
+
+# jekyll-relative-links is bundled with GitHub Pages specifically for repos
+# like this one: it rewrites relative links pointing at other .md files
+# (e.g. "../day04-deployments-replicasets/README.md",
+# "SOLUTIONS.md#exercise-1") to point at wherever Jekyll actually renders
+# that file, so every cross-day and exercise->solution link keeps working
+# on the published Pages site. No changes needed to any course content —
+# the exact same links keep working unchanged when browsing the repo
+# directly on GitHub.com, where they resolve as plain relative file paths.
+plugins:
+  - jekyll-relative-links
+relative_links:
+  enabled: true
+  collections: true
